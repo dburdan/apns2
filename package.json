@@ -27,11 +27,14 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "eslint . --fix"
+      "pre-commit": "eslint . --ext .ts --fix"
     }
   },
   "scripts": {
-    "lint": "eslint .",
+    "build": "tsc",
+    "prepare": "tsc",
+    "type-check": "tsc --noEmit --pretty --project ./tsconfig.json",
+    "lint": "eslint . --ext .ts",
     "test": "mocha --exit --bail --slow 1000 --timeout 5000 ./test/test.js"
   }
 }

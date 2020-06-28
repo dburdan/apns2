@@ -1,8 +1,8 @@
-module.exports = Object.freeze({
+export default Object.freeze({
   alert: 'alert',
   background: 'background',
   voip: 'voip',
   complication: 'complication',
   fileprovider: 'fileprovider',
-  mdm: 'mdm'
-})
+  mdm: 'mdm',
+} as const);

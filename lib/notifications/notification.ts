@@ -1,16 +1,18 @@
-const pushType = require('./constants/push-type')
-const priority = require('./constants/priority')
+import pushType from './constants/push-type';
+import priority from './constants/priority';
+import type { NotificationOptions } from '../types';
 
 /**
  * @class Notification
  */
-class Notification {
+  protected _options: NotificationOptions;
+
   /**
    * @static
    * @prop {Object} pushType
    */
   static get pushType() {
-    return pushType
+    return pushType;
   }
 
   /**
@@ -18,7 +20,7 @@ class Notification {
    * @prop {Object} priority
    */
   static get priority() {
-    return priority
+    return priority;
   }
 
   /**
@@ -39,16 +41,16 @@ class Notification {
    * @param {String} [options.threadId]
    * @param {Object} [options.aps] - override all setters
    */
-  constructor(deviceToken, options) {
-    this._deviceToken = deviceToken
-    this._options = options || {}
+  constructor(deviceToken: string, options: NotificationOptions) {
+    this._deviceToken = deviceToken;
+    this._options = options || {};
   }
 
   /**
    * @prop {String} deviceToken
    */
   get deviceToken() {
-    return this._deviceToken
+    return this._deviceToken;
   }
 
   /**
@@ -56,7 +58,7 @@ class Notification {
    * @default alert
    */
   get pushType() {
-    return this._options.pushType || pushType.alert
+    return this._options.pushType || pushType.alert;
   }
 
   /**
@@ -64,76 +66,76 @@ class Notification {
    * @default 10
    */
   get priority() {
-    return this._options.priority || priority.immediate
+    return this._options.priority || priority.immediate;
   }
 
   /**
    * @prop {Number} expiration
    */
   get expiration() {
-    return this._options.expiration
+    return this._options.expiration;
   }
 
   /**
    * @prop {String} topic
    */
   get topic() {
-    return this._options.topic
+    return this._options.topic;
   }
 
   /**
    * @prop {String} collapseId
    */
   get collapseId() {
-    return this._options.collapseId
+    return this._options.collapseId;
   }
 
   /**
    * @method APNSOptions
    * @return {Object}
    */
-  APNSOptions() {
-    let result = {
-      aps: this._options.aps || {}
-    }
+  APNSOptions(): NotificationOptions {
+    let result: NotificationOptions = {
+      aps: this._options.aps || {},
+    };
 
     // Check for alert
     if (this._options.alert) {
-      result.aps.alert = this._options.alert
+      result.aps.alert = this._options.alert;
     }
 
     // Check for "silent" notification
     if (typeof this._options.contentAvailable === 'boolean') {
-      result.aps[`content-available`] = 1
+      result.aps[`content-available`] = 1;
     }
 
     // Check for sound
     if (typeof this._options.sound === 'string') {
-      result.aps.sound = this._options.sound
+      result.aps.sound = this._options.sound;
     }
 
     // Check for category
     if (typeof this._options.category === 'string') {
-      result.aps.category = this._options.category
+      result.aps.category = this._options.category;
     }
 
     // Check for badge
     if (typeof this._options.badge === 'number') {
-      result.aps.badge = this._options.badge
+      result.aps.badge = this._options.badge;
     }
 
     // Check for threadId
     if (typeof this._options.threadId === 'string') {
-      result.aps[`thread-id`] = this._options.threadId
+      result.aps[`thread-id`] = this._options.threadId;
     }
 
     // Add optional message data
-    for (let key in this._options.data) {
-      result[key] = this._options.data[key]
+    for (const key in this._options.data) {
+      result[key as keyof NotificationOptions] = this._options.data[key];
     }
 
-    return result
+    return result;
   }
 }
 
-module.exports = Notification
+export default Notification;

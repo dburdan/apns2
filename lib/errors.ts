@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   badCertificate: 'BadCertificate',
   badCertificateEnvironment: 'BadCertificateEnvironment',
   badCollapseId: 'BadCollapseId',
@@ -30,5 +30,5 @@ module.exports = {
   tooManyRequests: 'TooManyRequests',
   topicDisallowed: 'TopicDisallowed',
   unknownError: 'UnknownError',
-  unregistered: 'Unregistered'
-}
+  unregistered: 'Unregistered',
+};
