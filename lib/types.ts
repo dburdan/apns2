@@ -1,10 +1,12 @@
 import pushType from './notifications/constants/push-type';
+import { NotificationPayload } from './notifications/notification';
 
 export type ResponseError = {
   error: {
     reason: string;
     statusCode: number;
-    notification: Notification;
+    deviceToken: string;
+    notification: NotificationPayload;
   };
 };
 

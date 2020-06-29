@@ -3,12 +3,12 @@ import { Pool } from 'tarn';
 import jwt from 'jsonwebtoken';
 import Http2Client, { HTTPClientOptions } from './http2-client';
 import Errors from './errors';
-import Notification from './notifications/notification';
+import Notification, { NotificationPayload } from './notifications/notification';
 import BasicNotification from './notifications/basic-notification';
 import SilentNotification from './notifications/silent-notification';
 import type { APNSOptions, ResponseError } from './types';
 
-type Response = Notification | ResponseError;
+type Response = { notification: NotificationPayload; deviceToken: string } | ResponseError;
 
 /**
  * @const
@@ -93,10 +93,11 @@ class APNS extends EventEmitter {
 
   /**
    * @method send
-   * @param {Array<Notification>|Notification} notifications
+   * @param {Notification} notifications
    * @return {Promise}
    */
-  async send(notifications: Notification | Notification[]): Promise<Response | Response[]> {
+  async send(deviceToken: string, notification: NotificationPayload): Promise<Response> {
+    return this._sendOne(deviceToken, notification);
   }
 
   /**
@@ -107,7 +108,24 @@ class APNS extends EventEmitter {
   async sendMany(notifications: Notification[]): Promise<Response[]> {
     let promises = notifications.map(async (notification) => {
       try {
-        return await this._sendOne(notification);
+        return await this._sendOne(notification.deviceToken, notification);
+      } catch (error) {
+        return { error };
+      }
+    });
+    return Promise.all(promises);
+  }
+
+  /**
+   * @method sendToMany
+   * @param {Array<string>} deviceTokens
+   * @param {Notification} notification
+   * @return {Promise}
+   */
+  async sendToMany(deviceTokens: string[], notification: NotificationPayload): Promise<Response[]> {
+    const promises = deviceTokens.map(async (device) => {
+      try {
+        return await this._sendOne(device, notification);
       } catch (error) {
         return { error };
       }
@@ -126,12 +144,13 @@ class APNS extends EventEmitter {
   /**
    * @private
    * @method _sendOne
+   * @param {string} deviceToken
    * @param {Notification} notification
    * @return {Promise}
    */
-  async _sendOne(notification: Notification): Promise<Response> {
+  async _sendOne(deviceToken: string, notification: NotificationPayload): Promise<Response> {
     let options: HTTPClientOptions = {
-      path: `/${API_VERSION}/device/${encodeURIComponent(notification.deviceToken)}`,
+      path: `/${API_VERSION}/device/${encodeURIComponent(deviceToken)}`,
       headers: {
         authorization: `bearer ${this._getSigningToken()}`,
         'apns-push-type': notification.pushType,
@@ -156,7 +175,7 @@ class APNS extends EventEmitter {
 
     let body = JSON.stringify(notification.APNSOptions());
     let res = await client.post(options, body);
-    return this._handleServerResponse(res, notification);
+    return this._handleServerResponse(res, deviceToken, notification);
   }
 
   /**
@@ -206,19 +225,28 @@ class APNS extends EventEmitter {
    * @private
    * @method _handleServerResponse
    * @param {ServerResponse} res
+   * @param {string} deviceToken
+   * @param {NotificationPayload} notification
    * @return {Promise}
    */
-  async _handleServerResponse(res: any, notification: Notification): Promise<Response> {
+  async _handleServerResponse(
+    res: any,
+    deviceToken: string,
+    notification: NotificationPayload,
+  ): Promise<Response> {
     if (res.statusCode === 200) {
-      return notification;
+      return {
+        notification,
+        deviceToken,
+      };
     }
 
-    let json;
+    let json: ResponseError['error'];
 
     try {
       json = JSON.parse(res.body);
     } catch (err) {
-      json = { reason: Errors.unknownError };
+      json = { reason: Errors.unknownError } as ResponseError['error'];
     }
 
     json.statusCode = res.statusCode;

@@ -3,8 +3,9 @@ import priority from './constants/priority';
 import type { NotificationOptions } from '../types';
 
 /**
- * @class Notification
+ * @class NotificationPayload
  */
+export class NotificationPayload {
   protected _options: NotificationOptions;
 
   /**
@@ -25,7 +26,6 @@ import type { NotificationOptions } from '../types';
 
   /**
    * @constructor
-   * @param {String} deviceToken
    * @param {Object} [options]
    * @param {Object|String} [options.alert]
    * @param {String} [options.alert.title]
@@ -41,16 +41,8 @@ import type { NotificationOptions } from '../types';
    * @param {String} [options.threadId]
    * @param {Object} [options.aps] - override all setters
    */
-  constructor(deviceToken: string, options: NotificationOptions) {
-    this._deviceToken = deviceToken;
+  constructor(options: NotificationOptions) {
     this._options = options || {};
-  }
-
-  /**
-   * @prop {String} deviceToken
-   */
-  get deviceToken() {
-    return this._deviceToken;
   }
 
   /**
@@ -135,6 +127,44 @@ import type { NotificationOptions } from '../types';
     }
 
     return result;
+  }
+}
+
+/**
+ * @class Notification
+ */
+class Notification extends NotificationPayload {
+  private _deviceToken: string;
+
+  /**
+   * @constructor
+   * @param {String} deviceToken
+   * @param {Object} [options]
+   * @param {Object|String} [options.alert]
+   * @param {String} [options.alert.title]
+   * @param {String} [options.alert.body]
+   * @param {Number} [options.badge]
+   * @param {String} [options.sound]
+   * @param {String} [options.category]
+   * @param {Object} [options.data]
+   * @param {Boolean} [options.contentAvailable]
+   * @param {Number} [options.priority]
+   * @param {String} [options.topic]
+   * @param {String} [options.collapseId]
+   * @param {String} [options.threadId]
+   * @param {Object} [options.aps] - override all setters
+   */
+  constructor(deviceToken: string, options: NotificationOptions) {
+    super(options);
+    this._deviceToken = deviceToken;
+    this._options = options || {};
+  }
+
+  /**
+   * @prop {String} deviceToken
+   */
+  get deviceToken() {
+    return this._deviceToken;
   }
 }
 
